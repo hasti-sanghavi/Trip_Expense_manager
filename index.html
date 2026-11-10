@@ -28,7 +28,7 @@
  <footer>Shared trip expense tracker · Google Sheets storage</footer>
 </main>
 <script>
-const API_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+const API_URL = "https://script.google.com/macros/s/AKfycbxQdue8VBHENOadF9gyhFYJG67b_tHOg-qKuvNISy5iSm-ayGtMpQxw88JsDt40tPuu/exec";
 const $=id=>document.getElementById(id);let state={tripName:"Family Trip Expenses",members:[],expenses:[],settlements:[],requestResults:[]};
 const money=n=>"₹"+Number(n||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
