@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Family Trip Expenses</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#172033;background:#f5f7fb;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button{cursor:pointer}
+header{background:#172b4d;color:white;padding:22px max(18px,calc((100vw - 1050px)/2));}
+header h1{font-size:22px;margin:0 0 5px}header p{margin:0;color:#c8d4e8;font-size:13px}
+main{max-width:1050px;margin:22px auto;padding:0 16px 50px}
+.tabs{display:flex;gap:7px;overflow:auto;margin:0 0 17px}
+.tab{border:1px solid #dce2ec;background:white;color:#4c5870;border-radius:9px;padding:10px 14px;white-space:nowrap}
+.tab.active{background:#172b4d;color:white;border-color:#172b4d}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.card{background:white;border:1px solid #e1e6ef;border-radius:13px;padding:16px;margin-bottom:13px;box-shadow:0 2px 8px #182b4b08}
+.metric small,.muted{color:#68758b;font-size:12px}.metric strong{display:block;font-size:23px;margin-top:5px}
+h2{font-size:16px;margin:0 0 5px}h3{font-size:14px;margin:0 0 12px}
+p.help{font-size:12px;color:#68758b;margin:4px 0 13px}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+label{display:block;font-size:12px;color:#58657b;margin-bottom:5px}
+input,select{width:100%;padding:10px 11px;border:1px solid #d8dfeb;border-radius:8px;background:white;color:#172033;min-width:0}
+.btn{border:0;border-radius:8px;padding:10px 14px;background:#2457a7;color:white;font-weight:650}
+.btn.secondary{background:white;color:#263b5c;border:1px solid #d8dfeb}
+.btn.danger{background:#fff1ef;color:#a33429;border:1px solid #f3d2cd}
+.btn:disabled{opacity:.55;cursor:wait}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.split-options{display:flex;gap:9px;flex-wrap:wrap;margin:8px 0}
+.option{display:flex;align-items:center;gap:7px;border:1px solid #d8dfeb;border-radius:8px;padding:9px 11px;font-size:13px}
+.option input{width:auto}
+.people{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.person{display:flex;align-items:center;gap:8px;border:1px solid #e0e5ed;border-radius:8px;padding:8px;font-size:12px;margin:0}
+.person input{width:auto}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:12px;min-width:620px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #e9edf3;vertical-align:top}
+th{color:#68758b;font-weight:650;background:#fafbfd}
+.badge{display:inline-block;border-radius:20px;background:#edf2fa;color:#405879;padding:3px 7px;font-size:11px}
+.positive{color:#087b55;font-weight:700}.negative{color:#b44537;font-weight:700}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.hidden{display:none!important}.notice{font-size:12px;padding:10px;border-radius:8px;background:#f0f5ff;color:#34517b;margin-top:10px}
+.error{background:#fff0ee;color:#9d382e}.success{background:#eaf8f1;color:#176c4c}
+.family-members{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0}
+.member-chip{background:#f0f3f8;padding:5px 8px;border-radius:20px;font-size:12px}
+hr{border:0;border-top:1px solid #edf0f5;margin:13px 0}
+footer{text-align:center;color:#8791a2;font-size:11px;margin-top:20px}
+@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.fields{grid-template-columns:1fr}.people{grid-template-columns:repeat(2,minmax(0,1fr))}main{margin-top:14px}}
+</style>
+</head>
+<body>
+<header><h1 id="tripTitle">Family Trip Expenses</h1><p>Shared expense tracking · Everyone can add expenses · One settlement view</p></header>
+<main>
+ <div class="grid">
+  <div class="card metric"><small>Total expenses</small><strong id="totalExpenses">₹0</strong></div>
+  <div class="card metric"><small>People</small><strong id="totalPeople">0</strong></div>
+  <div class="card metric"><small>Transactions</small><strong id="totalTransactions">0</strong></div>
+  <div class="card metric"><small>Families</small><strong id="totalFamilies">0</strong></div>
+ </div>
+ <nav class="tabs">
+  <button class="tab active" data-tab="add">Add expense</button>
+  <button class="tab" data-tab="ledger">Expense ledger</button>
+  <button class="tab" data-tab="settlement">Settlement</button>
+  <button class="tab" data-tab="admin">Admin setup</button>
+ </nav>
+
+ <section id="view-add">
+  <div class="card">
+   <h2>Record an expense</h2><p class="help">Select who is entering the transaction, who actually paid, and who should share the expense.</p>
+   <div class="fields">
+    <div><label for="recordedBy">You are recording this expense as</label><select id="recordedBy"></select></div>
+    <div><label for="paidBy">Paid by</label><select id="paidBy"></select></div>
+    <div><label for="description">Expense description</label><input id="description" placeholder="e.g. Go-karting tickets"></div>
+    <div><label for="amount">Total amount (₹)</label><input id="amount" type="number" min="0.01" step="0.01" placeholder="e.g. 2400"></div>
+    <div><label for="expenseDate">Expense date</label><input id="expenseDate" type="date"></div>
+    <div><label for="category">Category (optional)</label><select id="category"><option>Activity</option><option>Food</option><option>Travel</option><option>Stay</option><option>Shopping</option><option>Other</option></select></div>
+   </div>
+   <hr>
+   <h3>Who should this expense be split between?</h3>
+   <div class="split-options">
+    <label class="option"><input type="radio" name="splitMode" value="all" checked> Everyone equally</label>
+    <label class="option"><input type="radio" name="splitMode" value="selected"> Selected people equally</label>
+   </div>
+   <div id="participantsWrap" class="hidden">
+    <div class="row" style="margin:8px 0"><span class="muted">Select participants</span><button class="btn secondary" id="selectAll" type="button">Select all</button></div>
+    <div id="participants" class="people"></div>
+   </div>
+   <div id="addMessage" class="notice hidden"></div>
+   <div class="actions"><button class="btn" id="saveExpense">Save expense</button></div>
+  </div>
+ </section>
+
+ <section id="view-ledger" class="hidden">
+  <div class="card">
+   <div class="row"><div><h2>Expense ledger</h2><p class="help">All transactions recorded for this trip.</p></div><button class="btn secondary" id="refreshLedger">Refresh</button></div>
+   <div class="table-wrap"><table><thead><tr><th>Date</th><th>Expense</th><th>Amount</th><th>Paid by</th><th>Recorded by</th><th>Split between</th><th></th></tr></thead><tbody id="ledgerRows"></tbody></table></div>
+   <div id="ledgerEmpty" class="muted">No expenses recorded yet.</div>
+  </div>
+ </section>
+
+ <section id="view-settlement" class="hidden">
+  <div class="card"><h2>Member-wise settlement</h2><p class="help">Positive balance = should receive money. Negative balance = needs to pay.</p>
+   <div class="table-wrap"><table><thead><tr><th>Member</th><th>Family</th><th>Paid</th><th>Share</th><th>Balance</th></tr></thead><tbody id="balanceRows"></tbody></table></div>
+  </div>
+  <div class="card"><h2>Suggested transfers</h2><p class="help">A simplified set of payments to settle the group.</p><div id="transfers" class="muted">No pending settlements.</div></div>
+  <div class="card"><h2>Export</h2><p class="help">Download files that can be opened in Excel or Google Sheets.</p><div class="actions"><button class="btn" id="exportLedger">Download expense ledger CSV</button><button class="btn secondary" id="exportSettlement">Download settlement CSV</button></div></div>
+ </section>
+
+ <section id="view-admin" class="hidden">
+  <div class="card"><h2>Trip settings</h2><p class="help">Admin-only. Enter the admin PIN configured in Apps Script.</p>
+   <div class="fields"><div><label for="newTripName">Trip name</label><input id="newTripName" placeholder="Family Goa Trip"></div><div><label for="adminPin">Admin PIN</label><input id="adminPin" type="password" placeholder="Admin PIN"></div></div>
+   <div class="actions"><button class="btn" id="saveTrip">Save trip name</button></div>
+   <div id="adminMessage" class="notice hidden"></div>
+  </div>
+  <div class="card"><h2>Families & members</h2><p class="help">Create family groups and add members. All members will appear in the expense form.</p>
+   <div class="fields"><div><label for="familyName">New family name</label><input id="familyName" placeholder="e.g. Sanghavi Family"></div><div class="actions" style="align-items:end"><button class="btn" id="createFamily">Add family</button></div></div>
+   <hr><div id="familyList"></div>
+  </div>
+ </section>
+ <footer>Shared trip expense tracker · Google Sheets storage</footer>
+</main>
+<script>
+/*
+  Set this to your deployed Google Apps Script Web App URL.
+  Example: https://script.google.com/macros/s/DEPLOYMENT_ID/exec
+*/
+const API_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+const $ = id => document.getElementById(id);
+let state = {tripName:"Family Trip Expenses",families:[],members:[],expenses:[]};
+let loading = false;
+const money = n => "₹" + Number(n||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const member = id => state.members.find(m=>String(m.id)===String(id));
+function message(id,text,type=""){const el=$(id);el.textContent=text;el.className="notice "+type;}
+function showTab(tab){document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));["add","ledger","settlement","admin"].forEach(v=>$("view-"+v).classList.toggle("hidden",v!==tab));if(tab==="settlement"||tab==="ledger")render();}
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
+$("expenseDate").value=new Date().toISOString().slice(0,10);
+document.querySelectorAll('input[name="splitMode"]').forEach(r=>r.addEventListener("change",()=>{$("participantsWrap").classList.toggle("hidden",document.querySelector('input[name="splitMode"]:checked').value!=="selected")}));
+$("selectAll").onclick=()=>document.querySelectorAll("#participants input").forEach(c=>c.checked=true);
+
+function jsonpRead(){
+ return new Promise((resolve,reject)=>{
+  const cb="gsCallback_"+Date.now()+"_"+Math.floor(Math.random()*10000);
+  const script=document.createElement("script");
+  const timer=setTimeout(()=>{cleanup();reject(new Error("Could not load data from Google Sheets. Check the Apps Script URL and deployment access."));},15000);
+  function cleanup(){clearTimeout(timer);delete window[cb];script.remove();}
+  window[cb]=data=>{cleanup();if(data&&data.ok)resolve(data);else reject(new Error(data?.error||"Could not read spreadsheet data."));};
+  script.onerror=()=>{cleanup();reject(new Error("Google Sheets connection failed. Check your Apps Script deployment."));};
+  script.src=API_URL+"?action=read&callback="+cb+"&t="+Date.now();
+  document.body.appendChild(script);
+ });
+}
+async function apiPost(payload){
+ // Apps Script accepts a simple form POST. no-cors prevents browser preflight;
+ // a subsequent JSONP refresh confirms the saved data.
+ const body=new URLSearchParams({payload:JSON.stringify(payload)});
+ await fetch(API_URL,{method:"POST",mode:"no-cors",body});
+ await new Promise(r=>setTimeout(r,900));
+ return jsonpRead();
+}
+async function refresh(){
+ if(API_URL.includes("PASTE_YOUR")){throw new Error("Add your deployed Apps Script Web App URL to API_URL in index.html.");}
+ const data=await jsonpRead();
+ state={...state,...data};
+ render();
+}
+function render(){
+ $("tripTitle").textContent=state.tripName||"Family Trip Expenses";
+ $("newTripName").value=state.tripName||"";
+ $("totalExpenses").textContent=money(state.expenses.reduce((s,e)=>s+Number(e.amount),0));
+ $("totalPeople").textContent=state.members.length;
+ $("totalTransactions").textContent=state.expenses.length;
+ $("totalFamilies").textContent=state.families.length;
+ const options=state.members.map(m=>`<option value="${esc(m.id)}">${esc(m.name)} · ${esc(m.familyName)}</option>`).join("");
+ ["recordedBy","paidBy"].forEach(id=>{const old=$(id).value;$(id).innerHTML=options;if(state.members.some(m=>String(m.id)===old))$(id).value=old;});
+ $("participants").innerHTML=state.families.map(f=>{
+  const ms=state.members.filter(m=>String(m.familyId)===String(f.id));
+  if(!ms.length)return "";
+  return `<div style="grid-column:1/-1"><div class="muted" style="font-weight:700;margin:7px 0">${esc(f.name)}</div><div class="people">${ms.map(m=>`<label class="person"><input type="checkbox" value="${esc(m.id)}" checked><span>${esc(m.name)}</span></label>`).join("")}</div></div>`;
+ }).join("");
+ $("ledgerRows").innerHTML=state.expenses.slice().reverse().map(e=>`<tr><td>${esc(e.date)}</td><td><b>${esc(e.description)}</b><div class="muted">${esc(e.category||"")}</div></td><td><b>${money(e.amount)}</b></td><td>${esc(member(e.paidBy)?.name||e.paidByName||"Unknown")}</td><td>${esc(member(e.recordedBy)?.name||e.recordedByName||"Unknown")}</td><td>${(e.participantNames||[]).map(esc).join(", ")}</td><td>${e.adminDeleted?"Deleted":""}</td></tr>`).join("");
+ $("ledgerEmpty").classList.toggle("hidden",state.expenses.length>0);
+ renderSettlement();
+ renderFamilies();
+}
+function calculate(){
+ const rows=state.members.map(m=>({...m,paid:0,share:0,balance:0}));
+ const map=new Map(rows.map(m=>[String(m.id),m]));
+ state.expenses.forEach(e=>{
+  const payer=map.get(String(e.paidBy));if(payer)payer.paid+=Number(e.amount);
+  const ids=e.participantIds||[];
+  const cents=Math.round(Number(e.amount)*100);
+  if(ids.length){const base=Math.floor(cents/ids.length),remainder=cents-base*ids.length;ids.forEach((id,i)=>{const p=map.get(String(id));if(p)p.share+=(base+(i<remainder?1:0))/100;});}
+ });
+ rows.forEach(p=>p.balance=Math.round((p.paid-p.share)*100)/100);
+ return rows;
+}
+function makeTransfers(){
+ let debt=calculate().filter(p=>p.balance<-.004).map(p=>({name:p.name,amount:-p.balance}));
+ let credit=calculate().filter(p=>p.balance>.004).map(p=>({name:p.name,amount:p.balance}));
+ let result=[],i=0,j=0;
+ while(i<debt.length&&j<credit.length){let n=Math.min(debt[i].amount,credit[j].amount);result.push({from:debt[i].name,to:credit[j].name,amount:n});debt[i].amount-=n;credit[j].amount-=n;if(debt[i].amount<.005)i++;if(credit[j].amount<.005)j++;}
+ return result;
+}
+function renderSettlement(){
+ const rows=calculate();
+ $("balanceRows").innerHTML=rows.map(p=>`<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.familyName)}</td><td>${money(p.paid)}</td><td>${money(p.share)}</td><td class="${p.balance>=0?"positive":"negative"}">${p.balance>=0?"+":"−"}${money(Math.abs(p.balance))}</td></tr>`).join("");
+ const tx=makeTransfers();
+ $("transfers").innerHTML=tx.length?tx.map(t=>`<div class="row" style="padding:9px 0;border-bottom:1px solid #edf0f5"><span><b>${esc(t.from)}</b> pays <b>${esc(t.to)}</b></span><b>${money(t.amount)}</b></div>`).join(""):"No pending settlements.";
+}
+function renderFamilies(){
+ $("familyList").innerHTML=state.families.map(f=>{
+  const members=state.members.filter(m=>String(m.familyId)===String(f.id));
+  return `<div style="padding:12px 0;border-bottom:1px solid #edf0f5"><div class="row"><b>${esc(f.name)}</b><span class="badge">${members.length} members</span></div><div class="family-members">${members.map(m=>`<span class="member-chip">${esc(m.name)}</span>`).join("")||'<span class="muted">No members yet</span>'}</div><div class="fields"><div><label>Add member to ${esc(f.name)}</label><input id="member-${esc(f.id)}" placeholder="Member name"></div><div class="actions" style="align-items:end"><button class="btn secondary" onclick="addMember('${esc(f.id)}')">Add member</button></div></div></div>`;
+ }).join("")||'<p class="muted">No families created yet.</p>';
+}
+async function runPost(payload,successId){
+ try{setBusy(true);await apiPost(payload);await refresh();if(successId)message(successId,"Saved successfully.","success");}
+ catch(e){if(successId)message(successId,e.message,"error");else alert(e.message);}
+ finally{setBusy(false);}
+}
+function setBusy(v){loading=v;$("saveExpense").disabled=v;$("saveExpense").textContent=v?"Saving…":"Save expense";}
+$("saveExpense").onclick=async()=>{
+ const amount=Math.round(Number($("amount").value)*100)/100;
+ const mode=document.querySelector('input[name="splitMode"]:checked').value;
+ const ids=mode==="all"?state.members.map(m=>m.id):[...document.querySelectorAll("#participants input:checked")].map(c=>c.value);
+ const payload={action:"addExpense",recordedBy:$("recordedBy").value,paidBy:$("paidBy").value,description:$("description").value.trim(),amount,date:$("expenseDate").value,category:$("category").value,splitMode:mode,participantIds:ids};
+ if(!payload.recordedBy||!payload.paidBy){message("addMessage","Please add families and members first.","error");return;}
+ if(!payload.description||!Number.isFinite(amount)||amount<=0||!ids.length){message("addMessage","Enter a description, valid amount and at least one participant.","error");return;}
+ await runPost(payload,"addMessage");
+ $("description").value="";$("amount").value="";
+};
+$("refreshLedger").onclick=()=>refresh().catch(e=>alert(e.message));
+$("saveTrip").onclick=()=>runPost({action:"setTripName",tripName:$("newTripName").value.trim(),adminPin:$("adminPin").value},"adminMessage");
+$("createFamily").onclick=async()=>{const name=$("familyName").value.trim();if(!name)return message("adminMessage","Enter a family name.","error");await runPost({action:"addFamily",name,adminPin:$("adminPin").value},"adminMessage");$("familyName").value="";};
+window.addMember=async familyId=>{const input=$("member-"+familyId),name=input.value.trim();if(!name)return message("adminMessage","Enter a member name.","error");await runPost({action:"addMember",familyId,name,adminPin:$("adminPin").value},"adminMessage");};
+function download(name,rows){const csv="\ufeff"+rows.map(r=>r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\r\n");const a=document.createElement("a"),url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);}
+$("exportLedger").onclick=()=>{
+ const rows=[["Date","Expense","Category","Amount","Paid by","Recorded by","Participant","Participant share"]];
+ state.expenses.forEach(e=>{const ids=e.participantIds||[],cents=Math.round(Number(e.amount)*100),base=Math.floor(cents/Math.max(1,ids.length)),rem=cents-base*ids.length;ids.forEach((id,i)=>rows.push([e.date,e.description,e.category,e.amount,member(e.paidBy)?.name||e.paidByName,member(e.recordedBy)?.name||e.recordedByName,member(id)?.name||id,((base+(i<rem?1:0))/100).toFixed(2)]));});
+ download("family_trip_expense_ledger.csv",rows);
+};
+$("exportSettlement").onclick=()=>{
+ const rows=[["Member","Family","Total paid","Expense share","Net balance","Status"]];
+ calculate().forEach(p=>rows.push([p.name,p.familyName,p.paid.toFixed(2),p.share.toFixed(2),p.balance.toFixed(2),p.balance>.004?"Receives":p.balance<-.004?"Pays":"Settled"]));
+ rows.push([],["From","To","Amount"]);makeTransfers().forEach(t=>rows.push([t.from,t.to,t.amount.toFixed(2)]));
+ download("family_trip_settlement.csv",rows);
+};
+refresh().catch(e=>message("addMessage",e.message,"error"));
+</script>
+</body>
+</html>
